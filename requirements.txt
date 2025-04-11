@@ -1,0 +1,8 @@
+flask
+flask-restful
+flask-jwt-extended
+flask-sqlalchemy
+pymysql
+python-dotenv
+flasgger
+flask-swagger-ui
