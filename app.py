@@ -2,7 +2,6 @@ from flask import Flask
 from config import Config
 from extensions import db, jwt, swagger
 from routes.routes import user_bp
-from flasgger import Swagger
 
 app = Flask(__name__)
 app.config.from_object(Config)
