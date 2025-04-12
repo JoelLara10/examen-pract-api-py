@@ -2,9 +2,16 @@ from flask import Flask
 from config import Config
 from extensions import db, jwt, swagger
 from routes.routes import user_bp
+from flask_cors import CORS
 
 app = Flask(__name__)
 app.config.from_object(Config)
+CORS(app, resources={r"/*": {
+    "origins": [
+        "http://localhost:3000",
+        "https://main.d3k6p6uc1d4nx2.amplifyapp.com"
+    ]
+}}, supports_credentials=True)
 
 db.init_app(app)
 jwt.init_app(app)
