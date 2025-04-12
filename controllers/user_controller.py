@@ -3,7 +3,6 @@ from models.user import User
 from extensions import db
 from flask_jwt_extended import create_access_token, jwt_required
 
-
 def login():
     """
     Iniciar sesión
@@ -29,6 +28,8 @@ def login():
         description: Login exitoso
         examples:
           application/json: { "token": "jwt_token" }
+      400:
+        description: Faltan datos
       401:
         description: Credenciales inválidas
     """
@@ -48,19 +49,58 @@ def login():
         return jsonify({"msg": "Credenciales inválidas"}), 401
 
     access_token = create_access_token(identity=str(user.id))
-    
-    # Cambiamos el nombre de la propiedad a `token` para que el frontend la entienda
     return jsonify(token=access_token), 200
 
 
 @jwt_required()
 def get_users():
+    """
+    Obtener todos los usuarios
+    ---
+    tags:
+      - Usuarios
+    security:
+      - BearerAuth: []
+    responses:
+      200:
+        description: Lista de usuarios
+    """
     users = User.query.all()
     return jsonify([u.to_dict() for u in users]), 200
 
 
 @jwt_required()
 def create_user():
+    """
+    Crear un nuevo usuario
+    ---
+    tags:
+      - Usuarios
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - name
+            - email
+            - password
+          properties:
+            name:
+              type: string
+            email:
+              type: string
+            password:
+              type: string
+    responses:
+      201:
+        description: Usuario creado
+      400:
+        description: Email ya registrado o datos faltantes
+    """
     data = request.get_json()
 
     if not all(k in data for k in ('name', 'email', 'password')):
@@ -83,6 +123,8 @@ def update_user(id):
     ---
     tags:
       - Usuarios
+    security:
+      - BearerAuth: []
     parameters:
       - in: path
         name: id
@@ -115,7 +157,6 @@ def update_user(id):
 
     new_email = data.get('email')
     if new_email and new_email != user.email:
-        # Verifica que el nuevo email no esté en uso por otro usuario
         if User.query.filter_by(email=new_email).first():
             return jsonify({"error": "Email already exists"}), 400
         user.email = new_email
@@ -129,9 +170,26 @@ def update_user(id):
     return jsonify(user.to_dict()), 200
 
 
-
 @jwt_required()
 def delete_user(id):
+    """
+    Eliminar usuario
+    ---
+    tags:
+      - Usuarios
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        type: integer
+    responses:
+      200:
+        description: Usuario eliminado
+      404:
+        description: Usuario no encontrado
+    """
     user = User.query.get(id)
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404

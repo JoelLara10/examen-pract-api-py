@@ -1,11 +1,35 @@
 from flask import Flask
 from config import Config
-from extensions import db, jwt, swagger
+from extensions import db, jwt
 from routes.routes import user_bp
 from flask_cors import CORS
+from flasgger import Swagger
 
 app = Flask(__name__)
+
+# Configurar Swagger con autenticación JWT
+swagger_template = {
+    "swagger": "2.0",
+    "info": {
+        "title": "Mi API",
+        "description": "Documentación de mi API",
+        "version": "1.0.0"
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+            "description": "Token JWT. Ejemplo: Bearer <tu_token>"
+        }
+    }
+}
+
+swagger = Swagger(app, template=swagger_template)
+
 app.config.from_object(Config)
+
+# CORS
 CORS(app, resources={r"/*": {
     "origins": [
         "http://localhost:3000",
@@ -13,10 +37,11 @@ CORS(app, resources={r"/*": {
     ]
 }}, supports_credentials=True)
 
+# Extensiones
 db.init_app(app)
 jwt.init_app(app)
-swagger.init_app(app)
 
+# Rutas
 app.register_blueprint(user_bp)
 
 @app.route('/')
